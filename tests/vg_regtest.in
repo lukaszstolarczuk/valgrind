@@ -378,6 +378,7 @@ sub read_vgtest_file($)
 # propagate a Ctrl-C enabling us to quit.
 sub mysystem($) 
 {
+    print("Executing: $_[0]\n");
     my $exit_code = system($_[0]);
     ($exit_code == 2) and exit 1;      # 2 is SIGINT
     return $exit_code;
@@ -435,6 +436,7 @@ sub do_diffs($$$$)
         }
     }
     # If we reach here, none of the .exp files matched.
+    mysystem ( "cat $name.$mid.diff*" );
     print "*** $name failed ($mid) ***\n";
     push(@failures, sprintf("%-40s ($mid)", "$fullname"));
     $num_failures{$mid}++;
@@ -465,7 +467,7 @@ sub do_one_test($$)
         } elsif (256 == $prereq_res) {
             # Nb: weird Perl-ism -- exit code of '1' is seen by Perl as 256...
             # Prereq failed, skip.
-            printf("%-16s (skipping, prereq failed: $prereq)\n", "$name:");
+            printf("\n%-16s (skipping, prereq failed: $prereq)\n", "$name:");
             return;
         } else {
             # Bad prereq; abort.
@@ -482,7 +484,7 @@ sub do_one_test($$)
            $envBvars = "$envBvars $e";
         }
         # If there is a progB, let's start it in background:
-        printf("%-16s valgrind $extraopts $vgopts $prog $args (progB: $progB $argsB)\n",
+        printf("\n%-16s valgrind $extraopts $vgopts $prog $args (progB: $progB $argsB)\n",
                "$name:");
         # progB.done used to detect child has finished. See below.
         # Note: redirection of stdout and stderr is before $progB to allow argsB
@@ -499,7 +501,7 @@ sub do_one_test($$)
                      . "touch progB.done)  &");
         }
     } else {
-        printf("%-16s valgrind $extraopts $vgopts $prog $args\n", "$name:");
+        printf("\n%-16s valgrind $extraopts $vgopts $prog $args\n", "$name:");
     }
 
     # Collect environment variables, if any.
@@ -642,7 +644,7 @@ sub test_one_dir($$)
     my $found_tests = (0 != (grep { $_ =~ /\.vgtest$/ } @fs));
 
     if ($found_tests) {
-        print "-- Running  tests in $full_dir $dashes\n";
+        print "-- Running tests in $full_dir $dashes\n";
     }
     foreach my $f (@fs) {
         if (-d $f) {
